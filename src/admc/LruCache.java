@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class LruCache<K, V> implements EvictionPolicy<K, V> {
     private final int capacity;
-    private final Map<K, Node<K, V>> map = new HashMap<>();
+    private final Map<K, Node<K, V>> cacheMap = new HashMap<>();
     private final Node<K, V> head = new Node<>(null, null);
     private final Node<K, V> tail = new Node<>(null, null);
 
@@ -29,7 +29,7 @@ public class LruCache<K, V> implements EvictionPolicy<K, V> {
 
     @Override
     public V get(K key) {
-        Node<K, V> node = map.get(key);
+        Node<K, V> node = cacheMap.get(key);
         if (node == null) {
             return null;
         } else {
@@ -41,26 +41,26 @@ public class LruCache<K, V> implements EvictionPolicy<K, V> {
 
     @Override
     public void put(K key, V value) {
-        Node<K, V> node = map.get(key);
+        Node<K, V> node = cacheMap.get(key);
         if (node != null) {
             node.value = value;
             remove(node);
             addToFront(node);
         } else {
-            if (map.size() >= capacity) {
+            if (cacheMap.size() >= capacity) {
                 Node<K, V> lru = tail.prev;
                 remove(lru);
-                map.remove(lru.key);
+                cacheMap.remove(lru.key);
             }
             Node<K, V> newNode = new Node<>(key, value);
-            map.put(key, newNode);
+            cacheMap.put(key, newNode);
             addToFront(newNode);
         }
     }
 
     @Override
     public int size() {
-        return map.size();
+        return cacheMap.size();
     }
 
     @Override
