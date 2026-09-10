@@ -1,6 +1,9 @@
 package admc;
 
-public class LfuNode<K, V> {
+// Holds one cache entry for LfuCache: its key, value, and
+// current access frequency. Frequency starts at 1 and increases
+// each time the entry is touched via get() or put().
+class LfuNode<K, V> {
     K key;
     V value;
     int freq;
@@ -8,6 +11,6 @@ public class LfuNode<K, V> {
     LfuNode(K key, V value) {
         this.key = key;
         this.value = value;
-        this.freq = 1; // starts at 1 the moment it's first added
+        this.freq = 1;
     }
 }

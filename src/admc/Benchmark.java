@@ -28,12 +28,12 @@ public class Benchmark {
     }
 
     /**
-     * Replayes a fixed sequence of requests against a single cache
-     * and measure its hit rate. A miss simulates fetching the item from
+     * Replays a fixed sequence of requests against a single cache
+     * and measures its hit rate. A miss simulates fetching the item from
      * some slower backing store and caching it for future requests.
      *
-     * @param cache     the eviction policy under test
-     * @param requests  the sequence of keys to request, in order
+     * @param cache    the eviction policy under test
+     * @param requests the sequence of keys to request, in order
      * @return the fraction of requests that were served from the cache
      *         (a value between 0.0 and 1.0)
      */
@@ -45,7 +45,7 @@ public class Benchmark {
             if (value != null) {
                 hits++; // cache already had it
             } else {
-                cache.put(key, "song-" + key); // miss: simulate fetching and catching it
+                cache.put(key, "song-" + key); // miss: simulate fetching and caching it
             }
         }
         return (double) hits / requests.length;
