@@ -1,7 +1,7 @@
 package admc;
 
-import java.util.Random;
 import java.util.Arrays;
+import java.util.Random;
 
 /**
  * Generates a stream of requests following a Zipf distribution where a
@@ -25,7 +25,7 @@ public class Workload {
 
     /**
      * Creates a workload generator with a precomputed Zipf distribution.
-     * 
+     *
      * @param numItems number of distinct keys to generate requests for.
      * @param s        skew parameter; higher values mean a more extreme
      *                 concentration of requests on the top-ranked keys
