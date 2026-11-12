@@ -17,11 +17,9 @@ public class Workload {
     // which prefix-sum range it falls into.
     private final double[] cumulativeDistribution;
 
-    private final int numItems;
-
-    // Reused across all draws. Creating a new Random()
-    // per call is wasteful and can reduce randomness quality.
-    private final Random random = new Random();
+    // Reused across all draws. Seeded so the same seed always produces
+    // the exact same request sequence, which makes benchmark results reproducible
+    private final Random random;
 
     /**
      * Creates a workload generator with a precomputed Zipf distribution.
@@ -30,10 +28,13 @@ public class Workload {
      * @param s        skew parameter; higher values mean a more extreme
      *                 concentration of requests on the top-ranked keys
      *                 (s = 1.0 for Zipf distribution).
+     * @param seed     seed for the random number generator; the same seed always
+     *                 produces the same sequence of requests.
+     *
      */
-    public Workload(int numItems, double s) {
-        this.numItems = numItems;
+    public Workload(int numItems, double s, long seed) {
         this.cumulativeDistribution = buildZipfDistribution(numItems, s);
+        this.random = new Random(seed);
     }
 
     /**

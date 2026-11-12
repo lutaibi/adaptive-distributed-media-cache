@@ -1,9 +1,14 @@
 package admc;
 
+import java.util.List;
+import java.util.function.Supplier;
+
 /**
  * Runs the same sequence of Zipf-distributed requests against multiple
  * eviction policies and compares their hit rates, to evaluate how each
  * policy performs under a skewed, real-world-like access pattern.
+ * Repeats the comparison across several seeds and reports the average,
+ * so results don't depend on one lucky or unlucky run
  */
 public class Benchmark {
     public static void main(String[] args) {
@@ -11,20 +16,36 @@ public class Benchmark {
         int numRequests = 200000; // total requests to simulate
         double skew = 1.0;
         int cacheCapacity = 100; // max items each cache can hold before evicting
+        long[] seeds = {1, 2, 3, 4, 5};
 
-        Workload workload = new Workload(numItems, skew);
+        List<Supplier<EvictionPolicy<Integer, String>>> policies = List.of(() -> new LruCache<>(cacheCapacity), () -> new LfuCache<>(cacheCapacity));
 
-        // Generate the request sequence once, so both caches see identical requests.
-        int[] requests = new int[numRequests];
-        for (int i = 0; i < numRequests; i++) {
-            requests[i] = workload.nextRequest();
+        double[] totals = new double[policies.size()];
+
+        for (long seed : seeds) {
+            // Generate the request sequence once per seed, so every policy
+            // sees identical requests.
+            Workload workload = new Workload(numItems, skew, seed);
+            int[] requests = new int[numRequests];
+            for (int i = 0; i < numRequests; i++) {
+                requests[i] = workload.nextRequest();
+            }
+            StringBuilder line = new StringBuilder("Seed " + seed + ":");
+            for (int p = 0; p < policies.size(); p++) {
+                EvictionPolicy<Integer, String> cache = policies.get(p).get();
+                double hitRate = runBenchmark(cache, requests);
+                totals[p] += hitRate;
+                line.append(String.format(" %s %.1f%%", cache.name(), hitRate * 100));
+            }
+            System.out.println(line);
         }
 
-        double lruHitRate = runBenchmark(new LruCache<>(cacheCapacity), requests);
-        double lfuHitRate = runBenchmark(new LfuCache<>(cacheCapacity), requests);
-
-        System.out.println("LRU hit rate: " + lruHitRate);
-        System.out.println("LFU hit rate: " + lfuHitRate);
+        StringBuilder average = new StringBuilder("Average:");
+        for (int p = 0; p < policies.size(); p++) {
+            String name = policies.get(p).get().name();
+            average.append(String.format(" %s %.1f%%", name, totals[p] / seeds.length * 100));
+        }
+        System.out.println(average);
     }
 
     /**
@@ -35,7 +56,7 @@ public class Benchmark {
      * @param cache    the eviction policy under test
      * @param requests the sequence of keys to request, in order
      * @return the fraction of requests that were served from the cache
-     *         (a value between 0.0 and 1.0)
+     * (a value between 0.0 and 1.0)
      */
     private static double runBenchmark(EvictionPolicy<Integer, String> cache, int[] requests) {
         int hits = 0;
